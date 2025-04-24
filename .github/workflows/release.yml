@@ -1,48 +1,26 @@
-name: Release Pipeline
+name: Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      tool:
-        description: 'Outil de release (standard-version, semantic-release, release-it)'
-        required: true
-        default: 'standard-version'
-      version_type:
-        description: 'Type de version (patch, minor, major)'
-        required: true
-        default: 'patch'
+  push:
+    branches:
+      - master
 
 jobs:
   release:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-      
+      - uses: actions/checkout@v3
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
-          
+          node-version: 18
+
       - name: Install dependencies
-        run: npm ci
-        
-      - name: Configure Git
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          
-      - name: Run tests
-        run: |
-          npm test
-          npm run test:integration
-          
+        run: npm install
+
       - name: Run release script
-        run: |
-          chmod +x ./release.sh
-          ./release.sh ${{ github.event.inputs.tool }} ${{ github.event.inputs.version_type }}
+        run: bash release.sh minor
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
